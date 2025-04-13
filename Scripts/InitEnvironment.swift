@@ -1,6 +1,12 @@
 #!/usr/bin/swift
 import Foundation
 
+func handleSIGINT(_ signal: Int32) {
+    exit(0)
+}
+
+signal(SIGINT, handleSIGINT)
+
 let currentPath = "./"
 
 func writeCodeInFile(filePath: String, codes: String) {
@@ -21,19 +27,17 @@ import ProjectDescription
 public struct ProjectEnvironment {
     public let name: String
     public let organizationName: String
-    public let deploymentTarget: DeploymentTarget
-    public let platform: Platform
+    public let destinations: Destinations
+    public let deploymentTargets: DeploymentTargets
     public let baseSetting: SettingsDictionary
-    public let isCI: Bool
 }
 
 public let env = ProjectEnvironment(
     name: "\(projectName)",
     organizationName: "\(organizationName)",
-    deploymentTarget: .iOS(targetVersion: "16.0", devices: [.iphone, .ipad]),
-    platform: .iOS,
-    baseSetting: [:],
-    isCI: (ProcessInfo.processInfo.environment["TUIST_CI"] ?? "0") == "1" ? true : false
+    destinations: [.iPhone, .iPad],
+    deploymentTargets: .iOS("16.0"),
+    baseSetting: [:]
 )
 """
 }
@@ -42,12 +46,6 @@ func makeEnv(projectName: String, organizationName: String) {
     let env = envString(projectName: projectName, organizationName: organizationName)
     writeCodeInFile(filePath: currentPath + "Plugin/EnvironmentPlugin/ProjectDescriptionHelpers/ProjectEnvironment.swift", codes: env)
 }
-
-func handleSIGINT(_ signal: Int32) -> Void {
-    exit(0)
-}
-
-signal(SIGINT, handleSIGINT)
 
 print("Enter your project name", terminator: " : ")
 let projectName = readLine() ?? ""

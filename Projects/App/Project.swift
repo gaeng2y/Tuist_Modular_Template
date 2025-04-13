@@ -1,48 +1,38 @@
-import ProjectDescriptionHelpers
-import ProjectDescription
+import ConfigurationPlugin
 import DependencyPlugin
 import EnvironmentPlugin
 import Foundation
+import ProjectDescription
+import ProjectDescriptionHelpers
 
-let configurations: [Configuration] = env.isCI ?
-[
-  .debug(name: .dev),
-  .debug(name: .stage),
-  .release(name: .prod)
-] :
-[
-  .debug(name: .dev, xcconfig: .shared),
-  .debug(name: .stage, xcconfig: .shared),
-  .release(name: .prod, xcconfig: .shared)
-]
+let configurations: [Configuration] = .default
 
-let settings: Settings =
-    .settings(base: env.baseSetting,
-              configurations: configurations,
-              defaultSettings: .recommended)
+let settings: Settings = .settings(
+    base: env.baseSetting,
+    configurations: configurations,
+    defaultSettings: .recommended
+)
 
-let scripts: [TargetScript] = env.isCI ? [] : [.swiftLint]
+let scripts: [TargetScript] = generateEnvironment.scripts
 
 let targets: [Target] = [
-    .init(
+    .target(
         name: env.name,
-        platform: env.platform,
+        destinations: env.destinations,
         product: .app,
         bundleId: "\(env.organizationName).\(env.name)",
-        deploymentTarget: env.deploymentTarget,
+        deploymentTargets: env.deploymentTargets,
         infoPlist: .file(path: "Support/Info.plist"),
         sources: ["Sources/**"],
         resources: ["Resources/**"],
         scripts: scripts,
-        dependencies: [
-            
-        ],
+        dependencies: [],
         settings: .settings(base: env.baseSetting)
     )
 ]
 
 let schemes: [Scheme] = [
-    .init(
+    .scheme(
         name: "\(env.name)-DEV",
         shared: true,
         buildAction: .buildAction(targets: ["\(env.name)"]),
@@ -51,7 +41,7 @@ let schemes: [Scheme] = [
         profileAction: .profileAction(configuration: .dev),
         analyzeAction: .analyzeAction(configuration: .dev)
     ),
-    .init(
+    .scheme(
         name: "\(env.name)-STAGE",
         shared: true,
         buildAction: .buildAction(targets: ["\(env.name)"]),
@@ -60,7 +50,7 @@ let schemes: [Scheme] = [
         profileAction: .profileAction(configuration: .stage),
         analyzeAction: .analyzeAction(configuration: .stage)
     ),
-    .init(
+    .scheme(
         name: "\(env.name)-PROD",
         shared: true,
         buildAction: .buildAction(targets: ["\(env.name)"]),

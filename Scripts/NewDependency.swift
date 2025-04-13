@@ -1,6 +1,12 @@
 #!/usr/bin/swift
  import Foundation
 
+func handleSIGINT(_ signal: Int32) {
+    exit(0)
+}
+
+signal(SIGINT, handleSIGINT)
+
  let currentPath = "./"
 
  func updateFileContent(
@@ -12,7 +18,7 @@
      guard let readHandle = try? FileHandle(forReadingFrom: fileURL) else {
          fatalError("❌ Failed to find \(filePath)")
      }
-     guard let readData = try? readHandle.readToEnd() else { 
+     guard let readData = try? readHandle.readToEnd() else {
          fatalError("❌ Failed to find \(filePath)")
      }
      try? readHandle.close()
@@ -29,9 +35,9 @@
  }
 
  func registerDependenciesSwift(url: String, version: String) {
-     let filePath = currentPath + "Tuist/Dependencies.swift"
-     let findingString = "    swiftPackageManager: SwiftPackageManagerDependencies(\n        [\n"
-     let inserting = "            .remote(url: \"\(url)\", requirement: .exact(\"\(version)\")),\n"
+     let filePath = currentPath + "Package.swift"
+     let findingString = "    dependencies: [\n"
+     let inserting = "        .package(url: \"\(url)\", from: \"\(version)\"),\n"
      updateFileContent(filePath: filePath, finding: findingString, inserting: inserting)
  }
 
@@ -46,12 +52,6 @@
      registerDependenciesSwift(url: url, version: version)
      registerDependencySPM(name: name, package: package)
  }
-
- func handleSIGINT(_ signal: Int32) -> Void {
-     exit(0)
- }
-
- signal(SIGINT, handleSIGINT)
 
  print("Enter dependency name", terminator: " : ")
  guard let dependencyName = readLine() else {
@@ -74,4 +74,6 @@
  }
 
  registerDependency(name: dependencyName, package: packageName, url: dependencyURL, version: dependencyVersion)
-
+ 
+ print("")
+ print("✅ New Dependency is registered successfully!")

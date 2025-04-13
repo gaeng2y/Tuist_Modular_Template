@@ -15,7 +15,7 @@ public enum MicroFeatureTarget {
 public extension Project {
     static func makeModule(
         name: String,
-        destination: Destination = env.destination,
+        destinations: Destinations = env.destinations,
         product: Product,
         targets: Set<MicroFeatureTarget>,
         packages: [Package] = [],
@@ -33,7 +33,7 @@ public extension Project {
         additionalFiles: [FileElement] = [],
         configurations: [Configuration] = []
     ) -> Project {
-        let scripts: [TargetScript] = env.isCI ? [] : [.swiftLint]
+        let scripts: [TargetScript] = generateEnvironment.scripts
         let ldFlagsSettings: SettingsDictionary = product == .framework ?
         ["OTHER_LDFLAGS": .string("$(inherited) -all_load")] :
         ["OTHER_LDFLAGS": .string("$(inherited)")]
@@ -64,7 +64,7 @@ public extension Project {
             allTargets.append(
                 .target(
                     name: "\(name)Interface",
-                    destinations: [destination],
+                    destinations: destinations,
                     product: .framework,
                     bundleId: "\(env.organizationName).\(name)Interface",
                     deploymentTargets: env.deploymentTargets,
@@ -80,8 +80,8 @@ public extension Project {
         // MARK: - Sources
         allTargets.append(
             .target(
-                name: "\(name)Interface",
-                destinations: [destination],
+                name: name,
+                destinations: destinations,
                 product: product,
                 bundleId: "\(env.organizationName).\(name)",
                 deploymentTargets: env.deploymentTargets,
@@ -98,7 +98,7 @@ public extension Project {
             allTargets.append(
                 .target(
                     name: "\(name)Testing",
-                    destinations: [destination],
+                    destinations: destinations,
                     product: .framework,
                     bundleId: "\(env.organizationName).\(name)Testing",
                     deploymentTargets: env.deploymentTargets,
@@ -126,7 +126,7 @@ public extension Project {
             allTargets.append(
                 .target(
                     name: "\(name)Tests",
-                    destinations: [destination],
+                    destinations: destinations,
                     product: .unitTests,
                     bundleId: "\(env.organizationName).\(name)Tests",
                     deploymentTargets: env.deploymentTargets,
@@ -143,7 +143,7 @@ public extension Project {
             allTargets.append(
                 .target(
                     name: "\(name)UITests",
-                    destinations: [destination],
+                    destinations: destinations,
                     product: .uiTests,
                     bundleId: "\(env.organizationName).\(name)UITests",
                     deploymentTargets: env.deploymentTargets,
@@ -164,7 +164,7 @@ public extension Project {
             allTargets.append(
                 .target(
                     name: "\(name)DemoApp",
-                    destinations: [destination],
+                    destinations: destinations,
                     product: .app,
                     bundleId: "\(env.organizationName).\(name)DemoApp",
                     deploymentTargets: env.deploymentTargets,
@@ -192,41 +192,6 @@ public extension Project {
             settings: settings,
             targets: allTargets,
             schemes: schemes
-        )
-    }
-}
-
-extension Scheme {
-    static func makeScheme(target: ConfigurationName, name: String) -> Scheme {
-        return .scheme(
-            name: name,
-            shared: true,
-            buildAction: .buildAction(targets: ["\(name)"]),
-            testAction: .targets(
-                ["\(name)Tests"],
-                configuration: target,
-                options: .options(coverage: true, codeCoverageTargets: ["\(name)"])
-            ),
-            runAction: .runAction(configuration: target),
-            archiveAction: .archiveAction(configuration: target),
-            profileAction: .profileAction(configuration: target),
-            analyzeAction: .analyzeAction(configuration: target)
-        )
-    }
-    static func makeDemoScheme(target: ConfigurationName, name: String) -> Scheme {
-        return .scheme(
-            name: name,
-            shared: true,
-            buildAction: .buildAction(targets: ["\(name)DemoApp"]),
-            testAction: .targets(
-                ["\(name)Tests"],
-                configuration: target,
-                options: .options(coverage: true, codeCoverageTargets: ["\(name)DemoApp"])
-            ),
-            runAction: .runAction(configuration: target),
-            archiveAction: .archiveAction(configuration: target),
-            profileAction: .profileAction(configuration: target),
-            analyzeAction: .analyzeAction(configuration: target)
         )
     }
 }

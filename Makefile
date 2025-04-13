@@ -1,10 +1,14 @@
 generate:
-	tuist fetch
+	tuist install
 	tuist generate
 
 ci_generate:
-	tuist fetch
-	TUIST_CI=1 tuist generate
+	tuist install
+	TUIST_ENV=CI tuist generate
+
+cd_generate:
+	tuist install
+	TUIST_ENV=CD tuist generate
 
 clean:
 	rm -rf **/*.xcodeproj
